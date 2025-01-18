@@ -8,18 +8,18 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title ERC20Token
  * @dev ERC20Token is an ERC20 token with additional features such as burning, pausing, and minting,
  * along with AccessControl and Permit functionalities.
  * 
- * @notice SECURITY NOTE: This contract inherits AccessControl and sets up DEFAULT_ADMIN_ROLE,
- * but currently has no admin-restricted functions. The admin role is transferrable via 
- * grantRole/revokeRole. Consider either:
- * 1. Adding admin-restricted functions for necessary privileged operations
- * 2. Removing AccessControl if admin functionality isn't needed
- * 3. Documenting intended future use of admin role
+ * @notice Setup Process:
+ * 1. Call initializeYAYFarm() to allocate 10,000 tokens to YAYFarm contract
+ * 2. Call initializeDAO() to allocate 10,000 tokens to DAO treasury
+ * 3. Call setMerkleRoot() with airdrop merkle root
+ * 4. Call transferAdminControl() to transfer ownership to timelock controller
  */
 contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Votes {
     ERC721Burnable public immutable NFT_CONTRACT;
@@ -32,9 +32,15 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
     // Maps token ID to the address that placed it on the altar
     mapping(uint256 => address) public tokenIdToAltarAddress;
 
+    // Add new airdrop-related state variables
+    bytes32 public merkleRoot;
+    mapping(address => bool) public hasClaimedAirdrop;
+
     // Events
     event TokensPlacedOnAltar(address indexed user, uint256[] tokenIds);
     event BurnRewardsClaimed(address indexed user, uint256 burnCount, uint256 rewardAmount);
+    event AirdropClaimed(address indexed account, uint256 amount);
+    event MerkleRootSet(bytes32 merkleRoot);
 
     /**
      * @dev Initializes the ERC20Token contract.
@@ -55,6 +61,24 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         NFT_CONTRACT = ERC721Burnable(nftContract);
         _mint(address(this), TOTAL_SUPPLY);
+    }
+
+    /**
+     * @notice Initializes the YAYFarm with its token allocation
+     * @param yayFarmAddress The address of the YAYFarm contract
+     */
+    function initializeYAYFarm(address yayFarmAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 farmAllocation = 10_000 * 10 ** 18;
+        require(transfer(yayFarmAddress, farmAllocation), "Transfer failed");
+    }
+
+    /**
+     * @notice Initializes the DAO with its token allocation for protocol-owned liquidity
+     * @param daoAddress The address of the DAO treasury
+     */
+    function initializeDAO(address daoAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 daoAllocation = 10_000 * 10 ** 18;
+        require(transfer(daoAddress, daoAllocation), "Transfer failed");
     }
 
     /**
@@ -138,6 +162,49 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
         if(offerings.length == 0) {
             delete altarOfferings[owner];
         }
+    }
+
+    /**
+     * @notice Sets the merkle root for airdrop verification
+     * @param _merkleRoot The merkle root hash
+     */
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        merkleRoot = _merkleRoot;
+        emit MerkleRootSet(_merkleRoot);
+    }
+
+    /**
+     * @notice Claim airdrop tokens based on merkle proof
+     * @param amount Amount of tokens to claim
+     * @param merkleProof Array of hashes forming the merkle proof
+     */
+    function claimAirdrop(uint256 amount, bytes32[] calldata merkleProof) external {
+        require(!hasClaimedAirdrop[msg.sender], "Already claimed airdrop");
+        
+        // Verify the merkle proof
+        bytes32 node = keccak256(abi.encodePacked(msg.sender, amount));
+        require(MerkleProof.verify(merkleProof, merkleRoot, node), "Invalid proof");
+
+        // Mark as claimed and transfer tokens
+        hasClaimedAirdrop[msg.sender] = true;
+        require(transfer(msg.sender, amount), "Transfer failed");
+        
+        emit AirdropClaimed(msg.sender, amount);
+    }
+
+    /**
+     * @notice Transfers admin control to the timelock controller
+     * @dev Can only be called by the current admin
+     * @param timelock The address of the timelock controller
+     */
+    function transferAdminControl(address timelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(timelock != address(0), "Cannot transfer admin role to zero address");
+        
+        // Grant admin role to timelock
+        _grantRole(DEFAULT_ADMIN_ROLE, timelock);
+        
+        // Revoke admin role from current admin (msg.sender)
+        _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // The following functions are overrides required by Solidity.

@@ -3,6 +3,13 @@ import { config } from "../deploy.config.js" // Note: may need .js extension
 import { getExpectedContractAddress } from '../helpers/expected_contract.js' // Note: may need .js extension
 import fs from "fs";
 
+/*
+1. Deploy YAYFarm (with placeholder YAY address)
+2. Deploy ERC20Token (using YAYFarm address)
+3. Update YAYFarm's YAY token address
+4. Deploy YAYSnapshot
+*/
+
 const func = async function (hre) {
     console.log("\x1B[37mDeploying Open Zepellin Governance contracts");
 
@@ -10,7 +17,7 @@ const func = async function (hre) {
         token: {
             name: "YAYPES",
             symbol: "YAY",
-            nftContract: "0x..."  // Add NFT contract address here
+            nftContract: process.env.NFT_CONTRACT_ADDRESS  // Updated to use env variable
         },
         timelock: {
             minDelay: 60, // 12 minutes (assuming 12 seconds per block)
@@ -75,9 +82,21 @@ const func = async function (hre) {
 
     //// deploy timelock
     await (async function deployTimelock() {
-        const proposers = [admin_address, timelock_address];
-        const executors = [admin_address, timelock_address];
-    })();
+        const proposers = [governance_address]; // Governor will be proposer
+        const executors = [ethers.ZeroAddress]; // Anyone can execute
+        const admin = deployer; // Initial admin for setup
+        
+        await deploy("TimelockController", {
+            from: deployer,
+            args: [
+                CONFIG.timelock.minDelay,
+                proposers,
+                executors,
+                admin
+            ],
+            log: true,
+        });
+    });
 
     //// deploy governor
     await (async function deployGovernor() {
@@ -91,8 +110,49 @@ const func = async function (hre) {
             CONFIG.governor.proposalThreshold,
             CONFIG.governor.quorumNumerator,
             CONFIG.governor.voteExtension
-        ]
-    })();
+        ];
+
+        governor = await deploy("OZGovernor", {
+            from: deployer,
+            args: args,
+            log: true,
+        });
+    });
+
+    async function setupGovernance() {
+        const timelock = await ethers.getContract("TimelockController");
+        const governor = await ethers.getContract("OZGovernor");
+        const token = await ethers.getContract("ERC20Token");
+        
+        console.log("\nSetting up governance roles and permissions...");
+
+        // Transfer ERC20Token admin control to timelock
+        await token.transferAdminControl(timelock.address);
+        console.log(`Transferred ERC20Token admin control to Timelock at ${timelock.address}`);
+        
+        // Grant proposer role to Governor
+        const PROPOSER_ROLE = await timelock.PROPOSER_ROLE();
+        await timelock.grantRole(PROPOSER_ROLE, governor.address);
+        console.log(`Granted PROPOSER_ROLE to Governor at ${governor.address}`);
+        
+        // Optional: Verify executor role is open (address(0))
+        const EXECUTOR_ROLE = await timelock.EXECUTOR_ROLE();
+        const isExecutorRoleOpen = await timelock.hasRole(EXECUTOR_ROLE, ethers.ZeroAddress);
+        console.log(`Executor role is ${isExecutorRoleOpen ? 'open to everyone' : 'restricted'}`);
+        
+        // Revoke admin role from deployer
+        const ADMIN_ROLE = await timelock.DEFAULT_ADMIN_ROLE();
+        await timelock.revokeRole(ADMIN_ROLE, deployer);
+        console.log(`Revoked DEFAULT_ADMIN_ROLE from deployer ${deployer}`);
+
+        // Verify setup
+        console.log("\nVerifying governance setup:");
+        console.log(`- Governor has proposer role: ${await timelock.hasRole(PROPOSER_ROLE, governor.address)}`);
+        console.log(`- Deployer no longer has admin role: ${!await timelock.hasRole(ADMIN_ROLE, deployer)}`);
+        console.log(`- Timelock is admin of itself: ${await timelock.hasRole(ADMIN_ROLE, timelock.address)}`);
+    }
+
+    await setupGovernance();
 };
 
 func.id = "deploy_governor"; // id required to prevent reexecution

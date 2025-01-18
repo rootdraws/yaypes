@@ -141,3 +141,62 @@ For details, see [LICENSE](LICENSE.txt).
 8. Run npx hardhat run scripts/03-deploy-farm.js --network base-sepolia
 9. Add FARM_ADDRESS to .env
 10. Run npx hardhat run scripts/04-setup-initial-state.js --network base-sepolia
+
+## Launch Sequence
+
+### Phase 1: Initial Setup
+1. Deploy ERC20Token (YAY)
+```bash
+npx hardhat run scripts/01-deploy-yay.js --network base-sepolia
+```
+
+2. Generate snapshot of NFT holders
+```bash
+node scripts/snapshot.js
+```
+
+3. Generate Merkle tree for airdrop
+```bash
+node scripts/generateMerkleTree.js
+```
+
+### Phase 2: PartyDAO Integration
+1. Create a new party at [PartyDAO](https://www.party.app)
+   - Set contribution minimum to 0.1 ETH
+   - Set funding period to 7 days
+   - Set party NFT details
+
+2. Wait for funding period to complete
+   - Monitor contributions
+   - If anyone rage quits before LP creation, consider canceling deployment
+
+### Phase 3: Core Contracts
+1. Deploy YAYFarm
+```bash
+npx hardhat run scripts/03-deploy-farm.js --network base-sepolia
+```
+
+2. Deploy and configure governance
+```bash
+pnpm deployc --network base-sepolia
+```
+
+### Phase 4: Liquidity Setup
+1. Through PartyDAO UI:
+   - Add liquidity to UniswapV2 with collected ETH and YAY
+   - Stake LP tokens in YAYFarm
+   - Transfer governance to Timelock controller
+
+### Phase 5: Final Steps
+1. Initialize airdrop contract
+2. Set merkle root for NFT holder claims
+3. Add DAO to Tally using [this link](https://www.tally.xyz/add-a-dao)
+
+### Environment Setup
+Update `.env` with:
+```env
+NFT_CONTRACT_ADDRESS=
+YAY_ADDRESS=
+FARM_ADDRESS=
+PARTY_ADDRESS=
+```

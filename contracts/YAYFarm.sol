@@ -3,10 +3,9 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract YAYFarm is Ownable, ReentrancyGuard {
+contract YAYFarm is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     struct UserInfo {
@@ -16,7 +15,7 @@ contract YAYFarm is Ownable, ReentrancyGuard {
 
     IERC20 public immutable yay;         // YAY token
     IERC20 public immutable lpToken;     // LP token
-    uint256 public yayPerBlock;          // YAY tokens rewarded per block
+    uint256 public immutable yayPerBlock;  // YAY tokens rewarded per block
     uint256 public lastRewardBlock;      // Last block number rewards were distributed
     uint256 public accYayPerShare;       // Accumulated YAY per share, times 1e12
 
@@ -29,7 +28,7 @@ contract YAYFarm is Ownable, ReentrancyGuard {
         IERC20 _yay,
         IERC20 _lpToken,
         uint256 _yayPerBlock
-    ) Ownable(msg.sender) {
+    ) {
         yay = _yay;
         lpToken = _lpToken;
         yayPerBlock = _yayPerBlock;
@@ -91,5 +90,28 @@ contract YAYFarm is Ownable, ReentrancyGuard {
         } else {
             yay.transfer(_to, _amount);
         }
+    }
+
+    function pendingYay(address _user) external view returns (uint256) {
+        UserInfo storage user = userInfo[_user];
+        uint256 lpSupply = lpToken.balanceOf(address(this));
+        uint256 _accYayPerShare = accYayPerShare;
+        
+        if (block.number > lastRewardBlock && lpSupply != 0) {
+            uint256 multiplier = block.number - lastRewardBlock;
+            uint256 yayReward = multiplier * yayPerBlock;
+            _accYayPerShare = _accYayPerShare + (yayReward * 1e12 / lpSupply);
+        }
+        return (user.amount * _accYayPerShare / 1e12) - user.rewardDebt;
+    }
+
+    // Emergency function to recover stuck tokens
+    function emergencyWithdraw() external nonReentrant {
+        UserInfo storage user = userInfo[msg.sender];
+        uint256 amount = user.amount;
+        user.amount = 0;
+        user.rewardDebt = 0;
+        lpToken.safeTransfer(msg.sender, amount);
+        emit Withdraw(msg.sender, amount);
     }
 } 
