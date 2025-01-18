@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract YAYAirdrop is Ownable {
     IERC20 public immutable yayToken;
-    IERC721 public constant NFT_CONTRACT = IERC721(0x53d8cbfa0abfeab01ab5997827e67069c6b46c7a);
+    IERC721 public constant NFT_CONTRACT = IERC721(0x53D8Cbfa0aBFeAB01ab5997827E67069C6b46C7a);
     uint256 public constant TOKENS_PER_NFT = 1 ether; // 1 YAY per NFT (18 decimals)
 
     event AirdropCompleted(uint256 startTokenId, uint256 endTokenId, uint256 totalDistributed);
