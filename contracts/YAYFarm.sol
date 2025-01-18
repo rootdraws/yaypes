@@ -29,6 +29,8 @@ contract YAYFarm is ReentrancyGuard {
         IERC20 _lpToken,
         uint256 _yayPerBlock
     ) {
+        require(address(_lpToken) != address(0), "Invalid LP token");
+        require(_lpToken.totalSupply() > 0, "LP token not initialized");
         yay = _yay;
         lpToken = _lpToken;
         yayPerBlock = _yayPerBlock;
