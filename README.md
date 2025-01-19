@@ -1,202 +1,73 @@
-# OZGovernor
+# Grassroots YAYPEs
 
-## About
+## $YAY Governance Documentation
 
-OZGovernor is a comprehensive governance contract developed as an extension of OpenZeppelin by Tally developers. This contract adds advanced functionalities for voting, timelock control, and quorum implementation, providing a sophisticated governance solution for decentralized autonomous organizations (DAOs).
+This repository contains contracts for:
 
-## 📗 Overview
+* $YAY token
+* Merkle Claim
+* $YAY Burn Bounty
+* $YAY LP Farm
 
-This repository contains tasks and scripts for the effortless deployment and testing of OZ Governance and its DAO smart contracts on Ethereum networks. Dive deeper into OZGovernor's functionalities with our extensive technical documentation, including its unique features and deployment instructions.
+YAYPEs is a derivative project of [Yaypegs](https://yaypegs.com/), released on Base. After one month of trading, the project has only done 11 ETH in volume. The [offers](https://opensea.io/collection/yaypes/offers) at the time of writing a sale of 600 YAYPEs would bring the floor down to below .0001 ETH per YAYPE.
 
-### Key Features
+![YAYPE Summary](pitchdeck/summary.png)
 
-- **Enhanced Voting Mechanics:** Detailed explanation of the voting process, including token-based voting and proposal lifecycle.
-- **Timelock Management:** Insights into the timelock mechanism and how it adds a layer of security and transparency.
-- **Quorum Requirements:** Description of quorum functionalities, ensuring democratic and fair governance.
+The artist, [ccmoret](https://x.com/ccmoret), has invested creative energy into the artwork for the project, and the current trade volume of YAYPEs does not reflect this artistic effort.
 
-### Contract Overview
+## Thesis: 7 Ways to Increase the Value of YAYPEs
 
-OZGovernor integrates various extensions from OpenZeppelin for robust governance features, including:
+1. Launch Token Gated Discord, so YAYPEs can socialize.
+2. Airdrop 1 $YAY to YAYPE Holders, for distribution.
+3. Burn 1 YAYPE for 1 $YAY to correct supply overhang.
+4. Form a DAO using PartyDAO to manage LP - entry costs .1 ETH.
+5. Create DAO Owned $YAY/ETH LP on Univ2.
+6. Create DAO Owned Pool on Sudoswap.
+7. Launch YAY-ETH Univ2 LP Farm to bootstrap liquiidty.
 
-- **OZGovernor:** Main governance contract for proposal management.
-- **ERC20Token:** Token used for voting, empowering token holders with governance rights.
-- **TimelockController:** Implements a delay mechanism for operational security.
+Grassroots YAYPES aims to launch these strategies, to test their impact on the project.
 
-For comprehensive contract details, visit our [documentation](https://docs.tally.xyz).
+## $YAY Tokenomics
 
-Interested in premium DAO solutions? Check out [Tally's premium features](https://docs.tally.xyz/premium-features).
+The YAYPEs NFT Collection has a total supply of 10,000 NFTs. There are currently 2753 holders of these NFTs.
 
-## 🧐 Using it with Tally
+$YAY Total Supply: 40,000
 
-### Steps for Deployment and Integration
+* 10,000 $YAY is allocated to the Merkle Claim, meaning 1 $YAY per YAYPE.
+* 10,000 $YAY is allocated to the Burn Bounty, meaning 1 $YAY per Burned YAYPE.
+* 10,000 $YAY is allocated to a PartyDAO. Membership will cost .1 ETH.
+  * 50% of the ETH raised will be used to create a DAO Owned $YAY/ETH LP on UniswapV2.
+  * 50% of the ETH raised will be used to create a DAO Owned Pool on Sudoswap.
+* 10,000 $YAY is allocated to Univ2 LP Incentives, which will be farmed by the DAO over 1 month.
 
-0. Set up the environment using the instructions in [installation](#installation).
-1. Customize `deploy.config.ts` for your DAO.
-2. Deploy contracts as detailed in [deploy method](#deploying).
-3. Validate your contract as per [validation guidelines](#validating-contract).
-4. Mint and distribute tokens to DAO members.
-5. Remove minting permissions post-distribution.
-6. Add your DAO to Tally using [this link](https://www.tally.xyz/add-a-dao).
+### Project Goals
 
-## 💻 Getting Started
+1. Reduce the supply of YAYPEs through Incentivized Burns.
+2. Increase NFT Liquidity, and DAO Revenue through a DAO owned Sudoswap Pool.
+3. Provide DAO Owned $YAY/ETH LP on UniswapV2, and earn fees.
+4. Increase the number of unique wallets interacting with the project, through providing LP for $YAY trading on Base.
 
-### Installation
+## Participation Guide
 
-```bash
-git clone https://github.com/withtally/gov-deployer.git
-cd gov-deployer
-pnpm install
-cp .env.example .env
-# Configure .env as needed (e.g., node RPCs)
-# You can also set all the values 
-# npx hardhat vars set INFURA_API_KEY
-```
+### NFT Holders
 
-### Additional Commands
+### PartyDAO Members
 
-```bash
-pnpm clean
-pnpm test
-npx hardhat compile
-```
-
-### Pre-Requisites
-
-- Node.js and PNPM
-- Git
-
-### Deploying
-
-Configure deployment parameters in `deploy.config.ts`.
-
-```bash
-# Define network from the names in hardhat.config.ts
-pnpm deployc --network sepolia
-# For local testing as a dry run, do not specify the network
-pnpm deployc
-```
-
-### Validating Contract
-
-Post-deployment, use the output commands for contract validation. Ensure Etherscan API KEY is in `.env`.
-
-Example output:
-
-```bash
-quorum numerator: 30 
-vote extension: 7200 
-
-deploying "OZGovernor" (tx: 0xc364cf1527fd3fb9d04cc2b53ec1099bd9f77dc745d6932060a06b4fdb2f98f9)...: deployed at 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 with 4800366 gas
-
-OZ Governor contract:  0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
-
-npx hardhat verify --network hardhat 0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9 "EXAMPLE GROUP" 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 7200 50400 0 30 7200
-```
-
-----------
-
-## Testing
-
-Run the tests using:
-
-```bash
-pnpm test
-```
-
-## 🚨 Disclaimer
-
-Use of OZGovernor is at your own risk. Tally is not liable for any damages or losses. Intended for testing and reference only.
-
-## 🤝 Contributions
-
-We welcome contributions! Refer to our [contributing guidelines](CONTRIBUTING.md) for details.
-
-## 📚 Changelog
-
-Stay updated with changes and improvements in our [changelog](CHANGELOG.md).
-
-## 📖 FAQs
-
-Find answers to common questions in our [FAQ section](FAQ.md).
-
-## 🖼️ Diagrams and Visuals
-
-Explore governance workflows through diagrams in our [visual guide](VISUAL_GUIDE.md).
-
-## ⚖️ License
-
-The whole repo and it's contracts are released under MIT license.
-
-For details, see [LICENSE](LICENSE.txt).
-
-## Deployment process
-
-1. Set up your .env file with your private key
-2. Run npx hardhat run scripts/01-deploy-yay.js --network base-sepolia
-3. Add YAY_ADDRESS to .env
-4. Create LP token on Base Sepolia (using UniswapV2)
-5. Add LP_TOKEN_ADDRESS to .env
-6. Run npx hardhat run scripts/02-deploy-airdrop.js --network base-sepolia
-7. Add AIRDROP_ADDRESS to .env
-8. Run npx hardhat run scripts/03-deploy-farm.js --network base-sepolia
-9. Add FARM_ADDRESS to .env
-10. Run npx hardhat run scripts/04-setup-initial-state.js --network base-sepolia
+* Membership to the PartyDAO will cost .1 ETH, and will be limited to YAYPE NFT Holders.
+* 10,000 YAY will be allocated to the DAO, to be used in $YAY/ETH LP.
+* If anyone rage quits before LP creation, we cancel deployment.
+* 50% of ETH raised will be used to create a DAO Owned $YAY/ETH LP on UniswapV2.
+* 50% of ETH raised will be used to create a DAO Owned Pool on Sudoswap.
+* $YAY/ETH LP will be staked in the $YAY LP Farm for 1 month.
 
 ## Launch Sequence
 
-### Phase 1: Initial Setup
-1. Deploy ERC20Token (YAY)
-```bash
-npx hardhat run scripts/01-deploy-yay.js --network base-sepolia
-```
+## Contract Overview
 
-2. Generate snapshot of NFT holders
-```bash
-node scripts/snapshot.js
-```
+### $YAY TOKEN
 
-3. Generate Merkle tree for airdrop
-```bash
-node scripts/generateMerkleTree.js
-```
+### Merkle Claim
 
-### Phase 2: PartyDAO Integration
-1. Create a new party at [PartyDAO](https://www.party.app)
-   - Set contribution minimum to 0.1 ETH
-   - Set funding period to 7 days
-   - Set party NFT details
+### Burn Bounty
 
-2. Wait for funding period to complete
-   - Monitor contributions
-   - If anyone rage quits before LP creation, consider canceling deployment
-
-### Phase 3: Core Contracts
-1. Deploy YAYFarm
-```bash
-npx hardhat run scripts/03-deploy-farm.js --network base-sepolia
-```
-
-2. Deploy and configure governance
-```bash
-pnpm deployc --network base-sepolia
-```
-
-### Phase 4: Liquidity Setup
-1. Through PartyDAO UI:
-   - Add liquidity to UniswapV2 with collected ETH and YAY
-   - Stake LP tokens in YAYFarm
-   - Transfer governance to Timelock controller
-
-### Phase 5: Final Steps
-1. Initialize airdrop contract
-2. Set merkle root for NFT holder claims
-3. Add DAO to Tally using [this link](https://www.tally.xyz/add-a-dao)
-
-### Environment Setup
-Update `.env` with:
-```env
-NFT_CONTRACT_ADDRESS=
-YAY_ADDRESS=
-FARM_ADDRESS=
-PARTY_ADDRESS=
-```
+### $YAY LP Farm
