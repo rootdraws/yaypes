@@ -11,7 +11,7 @@ This repository contains contracts for:
 
 YAYPEs is a derivative project of [Yaypegs](https://yaypegs.com/), released on Base. After one month of trading, the project has only done 11 ETH in volume. The [offers](https://opensea.io/collection/yaypes/offers) at the time of writing a sale of 600 YAYPEs would bring the floor down to below .0001 ETH per YAYPE. The artist, [ccmoret](https://x.com/ccmoret), has invested creative energy into the artwork for the project, and the current trade volume of YAYPEs does not reflect this artistic effort.
 
-![YAYPE Summary](https://github.com/rootdraws/yaypes/blob/main/pitchdeck/Summary.png)
+![YAYPE Summary](https://github.com/rootdraws/yaypes/blob/main/pitchdeck/SummaryChart.png)
 
 ## Thesis: 7 Ways to Increase the Value of YAYPEs
 
