@@ -6,50 +6,64 @@ require('dotenv').config();
 const NFT_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
     "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
-    "function ownerOf(uint256 tokenId) view returns (address)"
+    "function ownerOf(uint256 tokenId) view returns (address)",
+    "function totalSupply() view returns (uint256)"
 ];
+
+async function retryOwnerOf(nftContract, tokenId, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const owner = await nftContract.ownerOf(tokenId);
+            return owner;
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            // Wait longer between each retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+        }
+    }
+}
 
 async function getNFTHolders() {
     // Connect to Base network using environment variable
     const provider = new ethers.JsonRpcProvider(process.env.BASE_URL || "https://mainnet.base.org");
     
     // NFT Contract address from environment variable
-    const NFT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
-    if (!NFT_ADDRESS) {
-        throw new Error("NFT_CONTRACT_ADDRESS not set in environment variables");
-    }
+    const NFT_ADDRESS = "0x53D8Cbfa0aBFeAB01ab5997827E67069C6b46C7a";
     const nftContract = new ethers.Contract(NFT_ADDRESS, NFT_ABI, provider);
+
+    // Get actual total supply and convert to number
+    const totalSupply = Number(await nftContract.totalSupply());
+    console.log(`Total Supply: ${totalSupply}`);
 
     // Map to store holder data
     const holders = new Map();
     
-    // Get MAX_TOKEN_ID from environment variable
-    const MAX_TOKEN_ID = parseInt(process.env.MAX_TOKEN_ID || "10000");
-    const batchSize = parseInt(process.env.BATCH_SIZE || "100");
+    const batchSize = 50; // Reduced batch size to avoid rate limiting
 
     console.log("Starting to fetch NFT holders...");
     console.log(`Contract Address: ${NFT_ADDRESS}`);
-    console.log(`Max Token ID: ${MAX_TOKEN_ID}`);
-    console.log(`Batch Size: ${batchSize}`);
 
-    // Batch our requests to avoid rate limiting
-    for (let i = 1; i <= MAX_TOKEN_ID; i += batchSize) {
+    // Start from 1 instead of 0
+    for (let i = 1; i <= totalSupply; i += batchSize) {
         const promises = [];
         
-        for (let j = i; j < Math.min(i + batchSize, MAX_TOKEN_ID + 1); j++) {
+        for (let j = i; j < Math.min(i + batchSize, totalSupply + 1); j++) {
             promises.push(
-                nftContract.ownerOf(j)
+                retryOwnerOf(nftContract, j)
                     .then(owner => {
                         holders.set(owner, (holders.get(owner) || 0) + 1);
                     })
-                    .catch(() => {
-                        // Skip if token doesn't exist or other errors
+                    .catch((error) => {
+                        console.error(`Failed to fetch owner of token ${j} after retries:`, error.message);
                     })
             );
         }
 
         await Promise.all(promises);
-        console.log(`Processed tokens ${i} to ${Math.min(i + batchSize - 1, MAX_TOKEN_ID)}`);
+        console.log(`Processed tokens ${i} to ${Math.min(i + batchSize - 1, totalSupply)}`);
+        
+        // Increased delay between batches
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // Convert to array and sort by number of NFTs held
@@ -81,6 +95,6 @@ async function getNFTHolders() {
 getNFTHolders()
     .then(() => process.exit(0))
     .catch(error => {
-        console.error(error);
+        console.error("Fatal error:", error);
         process.exit(1);
     });

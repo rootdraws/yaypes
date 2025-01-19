@@ -4,8 +4,7 @@ async function main() {
   // Get the contract factory
   const YAYFarm = await ethers.getContractFactory("YAYFarm");
 
-  // Get the YAY token and LP token addresses
-  // These should be actual addresses - don't deploy without them
+  // Get the YAY token and LP token addresses from environment variables
   const yayTokenAddress = process.env.YAY_TOKEN_ADDRESS;
   const lpTokenAddress = process.env.LP_TOKEN_ADDRESS;
   

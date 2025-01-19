@@ -1,15 +1,14 @@
-import { ethers } from "ethers";
+const { ethers } = require("ethers");
 
-const getExpectedContractAddress = async (deployer, actionsAfter) => {
-  const deployerAddress = await deployer.getAddress();
-  const adminAddressTransactionCount = await deployer.getNonce();
+async function getExpectedContractAddress(signer, offset = 0) {
+    const nonce = await signer.getNonce();
+    const futureAddress = ethers.getCreateAddress({
+        from: await signer.getAddress(),
+        nonce: nonce + offset
+    });
+    return futureAddress;
+}
 
-  const expectedContractAddress = ethers.getCreateAddress({
-    from: deployerAddress,
-    nonce: adminAddressTransactionCount + actionsAfter,
-  });
- 
-  return expectedContractAddress;
-};
-
-export { getExpectedContractAddress }; 
+module.exports = {
+    getExpectedContractAddress
+}; 
