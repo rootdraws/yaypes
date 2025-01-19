@@ -109,7 +109,7 @@ contract ERC20Token is ERC20, ERC20Burnable, Ownable {
         require(MerkleProof.verify(merkleProof, merkleRoot, node), "Invalid proof");
 
         hasClaimedAirdrop[msg.sender] = true;
-        require(transfer(msg.sender, amount), "Transfer failed");
+        _transfer(address(this), msg.sender, amount);
         emit AirdropClaimed(msg.sender, amount);
     }
 
