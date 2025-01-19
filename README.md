@@ -128,6 +128,6 @@ DAO members will be able to observe over a 1 month period, what the outcome is o
 
 At the end of that month, the DAO will have another 10,000 $YAY -- the remainder of the supply, and they can decide what to do with those funds, or they can rage quit.
 
-## Discord
+## Token Gated Discord
 
 We will also launch a discord, where we can have a bot that tracks NFT sales, and offers a heightened status for LP DAO members.
