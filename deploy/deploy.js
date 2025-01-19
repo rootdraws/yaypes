@@ -32,6 +32,9 @@ const func = async function (hre) {
             CONFIG.token.nftContract
         ],
         log: true,
+        gasLimit: 3000000,
+        maxPriorityFeePerGas: 100000000,  // 0.1 gwei in wei
+        maxFeePerGas: 3000000000,         // 3 gwei in wei
     });
 
     console.log("\nDeployed contract address:");

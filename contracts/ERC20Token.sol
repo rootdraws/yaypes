@@ -3,18 +3,16 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /**
  * @title ERC20Token
- * @dev ERC20Token with burning, access control, and NFT interaction capabilities
+ * @dev ERC20Token with burning, ownership control, and NFT interaction capabilities
  */
-contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Votes {
+contract ERC20Token is ERC20, ERC20Burnable, Ownable {
     ERC721Burnable public immutable NFT_CONTRACT;
     
     uint256 private constant DECIMALS = 18;
@@ -39,18 +37,17 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
     constructor(
         string memory _name,
         string memory _symbol,
-        address defaultAdmin,
+        address initialOwner,
         address nftContract
     )
         ERC20(_name, _symbol)
-        ERC20Permit(_name)
+        Ownable(initialOwner)
     {
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         NFT_CONTRACT = ERC721Burnable(nftContract);
         _mint(address(this), TOTAL_SUPPLY);
     }
 
-    function initialize(address yayFarmAddress, address daoAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function initialize(address yayFarmAddress, address daoAddress) external onlyOwner {
         require(transfer(yayFarmAddress, ALLOCATION_AMOUNT), "YAYFarm transfer failed");
         require(transfer(daoAddress, ALLOCATION_AMOUNT), "DAO transfer failed");
     }
@@ -93,14 +90,15 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
         require(hasUnclaimedRewards[msg.sender], "No rewards to claim");
         uint256 rewardAmount = pendingRewards[msg.sender];
         
+        _transfer(address(this), msg.sender, rewardAmount);
+        
         hasUnclaimedRewards[msg.sender] = false;
         pendingRewards[msg.sender] = 0;
         
-        require(transfer(msg.sender, rewardAmount), "Transfer failed");
         emit EnlightenmentClaimed(msg.sender, rewardAmount / REWARD_PER_BURN, rewardAmount);
     }
 
-    function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         merkleRoot = _merkleRoot;
         emit MerkleRootSet(_merkleRoot);
     }
@@ -113,28 +111,6 @@ contract ERC20Token is ERC20, ERC20Burnable, AccessControl, ERC20Permit, ERC20Vo
         hasClaimedAirdrop[msg.sender] = true;
         require(transfer(msg.sender, amount), "Transfer failed");
         emit AirdropClaimed(msg.sender, amount);
-    }
-
-    function transferAdminControl(address timelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(timelock != address(0), "Cannot transfer to zero address");
-        _grantRole(DEFAULT_ADMIN_ROLE, timelock);
-        _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
-    function _update(address from, address to, uint256 value)
-        internal
-        override(ERC20, ERC20Votes)
-    {
-        super._update(from, to, value);
-    }
-
-    function nonces(address owner)
-        public
-        view
-        override(ERC20Permit, Nonces)
-        returns (uint256)
-    {
-        return super.nonces(owner);
     }
 
     function cleanupAltarData() internal {
