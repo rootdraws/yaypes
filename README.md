@@ -58,7 +58,7 @@ $YAY Total Supply: 40,000
 ### NFT Holders
 
 * 1 $YAY will be airdropped to each NFT Holder.
-* 1 $YAY will be rewarded to each user who burns a YAYPE.
+* 1 $YAY will be rewarded for each burned YAYPE.
 
 It is possible that the entire YAYPE NFT supply could be burned in exchange for $YAY, but it seems more likely that the supply will be aesthetically culled through burn selection, and that the $YAY supply will be absorbed by meme-driven trading on Base -- which represent a different type of speculator than the NFT holders.
 
@@ -87,8 +87,8 @@ The [YAYPE Contract](https://basescan.org/token/0x53d8cbfa0abfeab01ab5997827e670
 The $YAY contract uses a three part system to execute these burns:
 
 1) The User places the YAYPE on an altar, creating an array which connects the TokenID to the Address of the User.
-2) The User calls the burn() on the YAYPE contract, which gives the YAYPE to the Owner(0x0000000000000000000000000000000000000000).
-3) The User calls a meditate() function, which looks at the tokenID in the array for that user, and then checks ownership to see if Owner(0x0000000000000000000000000000000000000000) is the owner of the YAYPE. If so, the user is rewarded with a balance of 1 $YAY.
+2) The User calls the burn() on the YAYPE contract, which gives the YAYPE to the Owner(0x0).
+3) The User calls a meditate() function, which looks at the tokenID in the array for that user, and then checks ownership to see if Owner(0x0) is the owner of the YAYPE. If so, the user is rewarded with a balance of 1 $YAY per Verified Burned TokenID.
 4) The user calls a claimReward() function, which transfers the $YAY to the user's address.
 
 ### Burn Sequencer
@@ -114,7 +114,7 @@ A UI will allow users to claim their $YAY, and immediately burn their NFTs for m
 
 ### $YAY DAO LP Farm
 
-Following the Claim, and Burn, the user will have an opportunity to join a PartyDAO.
+Following the Claim, and Burn, the user will have an opportunity to join a [PartyDAO](https://www.party.app/start).
 
 The PartyDAO will be the sole beneficiary of the $YAY emissions, and YAYPE NFT holders will be the only ones allowed to buy membership.
 
